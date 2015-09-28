@@ -4,10 +4,12 @@
 
 import Data.Matrix
 import qualified Data.Vector as V
-import Control.Monad
+import Control.Monad (forM)
 import System.Random
 import Data.List (foldl')
 import System.Environment (getArgs)
+
+import MC
 
 -- | Return a random square matrix of given size, with elements in the [0,1[ range
 randomMatrixIO :: Int                 -- ^ size of the matrix
@@ -15,6 +17,28 @@ randomMatrixIO :: Int                 -- ^ size of the matrix
 randomMatrixIO n = do
     ls <- forM [1..n] $ \ _ -> forM [1..n] $ \ _ -> randomIO
     return $ fromLists ls
+
+-- | Return a random square matrix of given size, with elements in the [0,1[ range
+randomMatrix :: Int                 -- ^ size of the matrix
+             -> MC (Matrix Double)  -- ^ the matrix, in the MC monad because it's random
+randomMatrix n = do
+    lss <- forM [1..n] $ \ _ -> do
+                ls <- randomList n
+                return ls
+    return $ fromLists lss
+
+
+-- | Generate a random list of size n
+randomList :: Random a
+           => Int   -- ^ the list size
+           -> MC [a]
+randomList 0 = return []
+randomList n = do
+    gen <- get
+    let (x, gen') = random gen
+    put gen'
+    xs <- randomList (n-1)
+    return (x:xs)
 
 
 normalizeRow :: Double -> Matrix Double -> Int -> Matrix Double
@@ -38,17 +62,20 @@ toTransitionMatrix pAbs m = extended  <-> fromAbsorption
           fromAbsorption = rowVector $ (V.replicate cs 0.0) `V.snoc` 1.0
 
 
-process size absorptionProbability = do
-    m <- randomMatrixIO (size-1)
+process size absorptionProbability seed = do
+    let gen = mkStdGen seed
+    let (m, gen') = runMC (randomMatrix (size-1)) gen
     let m' = toTransitionMatrix absorptionProbability m
     print m'
 
 
 defaultSize = 15
 defaultAbsorptionProbability = 0.1
+defaultSeed = 12345
 
 main = do
     args <- getArgs
     let size = if length args > 0 then read $ head args else defaultSize
     let absorptionProbability = if length args > 1 then read $ args !! 1 else defaultAbsorptionProbability
-    process size absorptionProbability
+    let seed = if length args > 2 then read $ args !! 2 else defaultSeed
+    process size absorptionProbability seed
