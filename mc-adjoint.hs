@@ -62,11 +62,21 @@ toTransitionMatrix pAbs m = extended  <-> fromAbsorption
           fromAbsorption = rowVector $ (V.replicate cs 0.0) `V.snoc` 1.0
 
 
+{- |
+   Produce a transition matrix
+-}
+mkTransitionMatrix :: Int           -- ^ the matrix size
+                   -> Double        -- ^ the absorption probability
+                   -> MC (Matrix Double)
+mkTransitionMatrix size pAbs = do
+    m <- randomMatrix (size-1)
+    return $ toTransitionMatrix pAbs m
+
+
 process size absorptionProbability seed = do
     let gen = mkStdGen seed
-    let (m, gen') = runMC (randomMatrix (size-1)) gen
-    let m' = toTransitionMatrix absorptionProbability m
-    print m'
+    let (m, gen') = runMC (mkTransitionMatrix size absorptionProbability) gen
+    print m
 
 
 defaultSize = 15
