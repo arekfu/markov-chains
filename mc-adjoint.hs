@@ -3,17 +3,16 @@
  -}
 
 import Data.Matrix
+import qualified Data.Vector as V
 import Control.Monad
 import System.Random
 import Data.List (foldl')
-
-size = 15
-absorptionProbability = 0.1
+import System.Environment (getArgs)
 
 -- | Return a random square matrix of given size, with elements in the [0,1[ range
-randomMatrix :: Int                 -- ^ size of the matrix
-             -> IO (Matrix Double)  -- ^ the matrix, in the IO monad because it's random
-randomMatrix n = do
+randomMatrixIO :: Int                 -- ^ size of the matrix
+               -> IO (Matrix Double)  -- ^ the matrix, in the IO monad because it's random
+randomMatrixIO n = do
     ls <- forM [1..n] $ \ _ -> forM [1..n] $ \ _ -> randomIO
     return $ fromLists ls
 
@@ -30,12 +29,26 @@ normalizeRow norm m i = mapRow (\ _ x -> x*norm/tot) i m
 toTransitionMatrix :: Double        -- ^ the absorption probability
                    -> Matrix Double -- ^ the input matrix
                    -> Matrix Double
-toTransitionMatrix pAbs m = extended  -- <-> fromAbsorption
-    where norm = 1.0 - pAbs
-          normalized = foldl' (normalizeRow norm) m [1..nrows m]
-          extended = setSize pAbs (nrows m) (ncols m + 1) normalized
-          fromAbsorption = rowVector 
+toTransitionMatrix pAbs m = extended  <-> fromAbsorption
+    where rs = nrows m
+          cs = ncols m
+          norm = 1.0 - pAbs
+          normalized = foldl' (normalizeRow norm) m [1..rs]
+          extended = setSize pAbs rs (cs + 1) normalized
+          fromAbsorption = rowVector $ (V.replicate cs 0.0) `V.snoc` 1.0
+
+
+process size absorptionProbability = do
+    m <- randomMatrixIO (size-1)
+    let m' = toTransitionMatrix absorptionProbability m
+    print m'
+
+
+defaultSize = 15
+defaultAbsorptionProbability = 0.1
 
 main = do
-    m <- randomMatrix (size-1)
-    print m
+    args <- getArgs
+    let size = if length args > 0 then read $ head args else defaultSize
+    let absorptionProbability = if length args > 1 then read $ args !! 1 else defaultAbsorptionProbability
+    process size absorptionProbability
