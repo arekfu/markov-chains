@@ -2,18 +2,19 @@ module MarkovChain
 ( runMarkovChain
 , mkTransitionMatrix
 , step
+, stepUntilAbsorption
 , TransitionMatrix
 , SystemState
 , MarkovChain
 ) where
 
+import Control.Monad (when)
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Matrix
 import qualified Data.Vector as V
 import Data.List (foldl')
 import System.Random
-import qualified Debug.Trace as D
 
 import MC
 
@@ -84,6 +85,35 @@ step = do
     i <- lift $ lift $ sampleV probs
     put i
     return i
+
+takeWhileM :: Monad m => (a -> Bool) -> [m a] -> m [a]
+takeWhileM _ [] = return []
+takeWhileM pred (x:xs) = do
+    y <- x
+    let cont = pred y
+    if cont
+    then do
+        rest <- takeWhileM pred xs
+        return (y:rest)
+    else return []
+
+actWhileM :: Monad m => m a -> (a -> Bool) -> m [a]
+actWhileM act pred = do
+    x <- act
+    if pred x
+    then do
+        rest <- actWhileM act pred
+        return (x:rest)
+    else return []
+
+-- | Take steps until we hit absorption
+stepUntilAbsorption :: MarkovChain [SystemState]
+stepUntilAbsorption = do
+    matrix <- ask
+    let absState = nrows matrix
+    state <- get
+    states <- actWhileM step (/=absState)
+    return states
 
 getState :: MarkovChain SystemState
 getState = get

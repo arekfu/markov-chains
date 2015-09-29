@@ -17,7 +17,7 @@ process size absorptionProbability seed = do
     let (m, gen') = runMC (mkTransitionMatrix size absorptionProbability) gen
     putStrLn "Generated transition matrix:"
     print m
-    let (steps, gen'') = runMC (runMarkovChain (replicateM 100 step) m 1) gen'
+    let (steps, gen'') = runMC (runMarkovChain stepUntilAbsorption m 1) gen'
     putStrLn "Generated Markov chain:"
     print $ fst steps
 
