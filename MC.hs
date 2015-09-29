@@ -1,18 +1,22 @@
 module MC
 ( MC
-, get
-, put
+, Seed
 , runMC
 , uniform
 , sampleV
+, getGen
 ) where
 
 import System.Random
 import Control.Monad.State
 import qualified Data.Vector as V
 
+type Seed = Int
 
 type MC = State StdGen
+
+getGen :: MC StdGen
+getGen = get
 
 runMC = runState
 

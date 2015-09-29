@@ -8,17 +8,19 @@ module MarkovChain
 ) where
 
 import Control.Monad.Reader
+import Control.Monad.State
 import Data.Matrix
 import qualified Data.Vector as V
 import Data.List (foldl')
 import System.Random
+import qualified Debug.Trace as D
 
 import MC
 
 type TransitionMatrix = Matrix Double
 type SystemState = Int
 
-type MarkovChain = ReaderT TransitionMatrix MC
+type MarkovChain = ReaderT TransitionMatrix (StateT SystemState MC)
 
 -- | Return a random square matrix of given size, with elements in the [0,1[ range
 randomMatrix :: Int                 -- ^ size of the matrix
@@ -74,12 +76,16 @@ mkTransitionMatrix size pAbs = do
 
 
 -- | Take one step: transition from a state to another
-step :: SystemState -> MarkovChain SystemState
-step s = do
+step :: MarkovChain SystemState
+step = do
     matrix <- ask
-    let probs = getRow s matrix
-    i <- lift $ sampleV probs
+    state <- get
+    let probs = getRow state matrix
+    i <- lift $ lift $ sampleV probs
+    put i
     return i
 
+getState :: MarkovChain SystemState
+getState = get
 
-runMarkovChain = runReaderT
+runMarkovChain action matrix initialState = runStateT (runReaderT action matrix) initialState

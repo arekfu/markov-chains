@@ -11,14 +11,15 @@ import MarkovChain
 
 
 
-type Seed = Int
-
 process :: Int -> Double -> Seed -> IO ()
 process size absorptionProbability seed = do
     let gen = mkStdGen seed
     let (m, gen') = runMC (mkTransitionMatrix size absorptionProbability) gen
-    let (steps, gen'') = runMC (runMarkovChain (step 1) m) gen'
-    print steps
+    putStrLn "Generated transition matrix:"
+    print m
+    let (steps, gen'') = runMC (runMarkovChain (replicateM 100 step) m 1) gen'
+    putStrLn "Generated Markov chain:"
+    print $ fst steps
 
 
 defaultSize = 15
