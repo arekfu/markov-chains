@@ -1,5 +1,6 @@
 {-
- - A simple program to test some ideas about the determination of the adjoint flux in MC
+ - A simple program to test some ideas about the determination of the adjoint
+ - flux in MC
  -}
 
 import Control.Monad (replicateM)
@@ -8,18 +9,24 @@ import System.Environment (getArgs)
 
 import MC
 import MarkovChain
+import Adjoint
 
 
 
 process :: Int -> Double -> Int -> Seed -> IO ()
 process size absorptionProbability shots seed = do
     let gen = mkStdGen seed
-    let (m, gen') = runMC (mkTransitionMatrix size absorptionProbability) gen
+    let (m, gen') = runMC (mkRandomTransitionMatrix size absorptionProbability) gen
     putStrLn "Generated transition matrix:"
     print m
     let (steps, gen'') = runMC (simulateNChains shots 1 m) gen'
-    putStrLn "Generated Markov chains:"
-    print steps
+    if (shots<100) then do
+        putStrLn "Generated Markov chains:"
+        print steps
+    else return ()
+    let adjoint = estimateAdjoint (size-1) steps shots size
+    putStrLn "Estimated adjoint:"
+    print adjoint
 
 simulateNChains :: Int -> SystemState -> TransitionMatrix -> MC [[SystemState]]
 simulateNChains shots initialState matrix = do
@@ -28,8 +35,8 @@ simulateNChains shots initialState matrix = do
 
 defaultSize = 15
 defaultAbsorptionProbability = 0.1
-defaultSeed = 12345
 defaultShots = 10
+defaultSeed = 12345
 
 main = do
     args <- getArgs

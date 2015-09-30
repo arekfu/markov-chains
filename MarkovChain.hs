@@ -1,6 +1,6 @@
 module MarkovChain
 ( runMarkovChain
-, mkTransitionMatrix
+, mkRandomTransitionMatrix
 , step
 , stepUntilAbsorption
 , TransitionMatrix
@@ -23,13 +23,16 @@ type SystemState = Int
 
 type MarkovChain = ReaderT TransitionMatrix (StateT SystemState MC)
 
--- | Return a random square matrix of given size, with elements in the [0,1[ range
+-- | Return a random square matrix of given size, with elements in the [0,1[
+--   range and null diagonal elements
 randomMatrix :: Int                 -- ^ size of the matrix
-             -> MC TransitionMatrix  -- ^ the matrix, in the MC monad because it's random
+             -> MC TransitionMatrix -- ^ the matrix, in the MC monad because it's random
 randomMatrix n = do
-    lss <- forM [1..n] $ \ _ -> do
-                ls <- randomList n
-                return ls
+    lss <- forM [0..n-1] $ \ k -> do
+        ls <- randomList (n-1)
+        let (left, right) = splitAt k ls
+        let ls' = left ++ [0.0] ++ right
+        return ls'
     return $ fromLists lss
 
 
@@ -66,12 +69,12 @@ toTransitionMatrix pAbs m = extended  <-> fromAbsorption
 
 
 {- |
-   Produce a transition matrix
+   Produce a random transition matrix
 -}
-mkTransitionMatrix :: Int           -- ^ the matrix size
-                   -> Double        -- ^ the absorption probability
-                   -> MC TransitionMatrix
-mkTransitionMatrix size pAbs = do
+mkRandomTransitionMatrix :: Int           -- ^ the matrix size
+                         -> Double        -- ^ the absorption probability
+                         -> MC TransitionMatrix
+mkRandomTransitionMatrix size pAbs = do
     m <- randomMatrix (size-1)
     return $ toTransitionMatrix pAbs m
 
