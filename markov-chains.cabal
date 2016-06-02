@@ -1,6 +1,6 @@
 name:                markov-chains
 version:             0.1.0.0
-synopsis:            a simple sandbox for discrete-state, discrete-time Markov chains
+synopsis:            A simple Haskell sandbox for discrete-state, discrete-time Markov chains
 -- description:         
 license:             MIT
 license-file:        LICENSE
