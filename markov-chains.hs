@@ -4,7 +4,6 @@
  -}
 
 {-# LANGUAGE DeriveDataTypeable #-}
---{-# OPTIONS_GHC -fno-cse #-}
 
 import Control.Monad (replicateM, when)
 import System.Random
