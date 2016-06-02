@@ -3,28 +3,38 @@
  - flux in MC
  -}
 
-import Control.Monad (replicateM)
+{-# LANGUAGE DeriveDataTypeable #-}
+--{-# OPTIONS_GHC -fno-cse #-}
+
+import Control.Monad (replicateM, when)
 import System.Random
-import System.Environment (getArgs)
+import System.Environment (getArgs, getProgName)
+import System.Exit
+import System.IO
+import System.Console.CmdArgs
 
 import MC
 import MarkovChain
 import Adjoint
+import TransitionMatrixGenerator
 
 
-
-process :: Int -> Double -> Int -> Seed -> IO ()
-process size absorptionProbability shots seed = do
+process :: Options -> IO ()
+process (Options shots seed dim pabs coup tmTyp) = do
+    let mg = case tmTyp of
+                 "random" -> RandomMG dim pabs
+                 "block"  -> BlockMG dim pabs coup
+                 s        -> error $ "Unrecognized algorithm: " ++ s
     let gen = mkStdGen seed
-    let (m, gen') = runMC (mkRandomTransitionMatrix size absorptionProbability) gen
+    let matrixAct = makeMatrix mg
+    let (m, gen') = runMC matrixAct gen
     putStrLn "Generated transition matrix:"
     print m
     let (steps, gen'') = runMC (simulateNChains shots 1 m) gen'
-    if (shots<100) then do
+    when (shots<100) $ do
         putStrLn "Generated Markov chains:"
         print steps
-    else return ()
-    let adjoint = estimateAdjoint (size-1) steps shots size
+    let adjoint = estimateAdjoint steps shots m
     putStrLn "Estimated adjoint:"
     print adjoint
 
@@ -33,15 +43,47 @@ simulateNChains shots initialState matrix = do
     chains <- replicateM shots $ runMarkovChain stepUntilAbsorption matrix initialState
     return $ map fst chains
 
-defaultSize = 15
-defaultAbsorptionProbability = 0.1
-defaultShots = 10
-defaultSeed = 12345
+--------------
+-- CLI options
+
+data Options = Options { shots :: Int       -- ^ number of shots
+                       , seed :: Int        -- ^ MC seed
+                       , dimension :: Int   -- ^ dimension of the system space
+                       , absorptionProbability :: Double    -- ^ absorption probability per step
+                       , coupling :: Double                 -- ^ coupling coefficient
+                       , tmType :: String                   -- ^ type of transition matrix
+                       } deriving (Show, Data, Typeable)
+
+defaultOptions = Options
+    { shots = 10
+      &= name "n"
+      &= help "number of Monte-Carlo shots"
+      &= typ "SHOTS"
+    , seed = 12345
+      &= name "s"
+      &= help "Monte-Carlo seed"
+      &= typ "SEED"
+    , dimension = 15
+      &= name "d"
+      &= help "dimension of the state space"
+      &= typ "DIM"
+    , absorptionProbability = 0.1
+      &= explicit &= name "a" &= name "absorption-probability"
+      &= help "absorption probability"
+      &= typ "PABS"
+    , coupling = 0.2
+      &= name "c"
+      &= help "coupling constant for the block matrix generator"
+      &= typ "COUPLING"
+    , tmType = "random"
+      &= explicit &= name "t" &= name "type"
+      &= help "algorithm to generate the transition matrix; must be one of \
+              \\"random\", \"block\""
+      &= typ "ALGORITHM"
+    } &= program "markov-chains"
+      &= summary "markov-chains v0.1.0.0"
+      &= helpArg [explicit, name "h", name "help"]
 
 main = do
-    args <- getArgs
-    let size = if length args > 0 then read $ head args else defaultSize
-    let absorptionProbability = if length args > 1 then read $ args !! 1 else defaultAbsorptionProbability
-    let shots = if length args > 2 then read $ args !! 2 else defaultShots
-    let seed = if length args > 3 then read $ args !! 3 else defaultSeed
-    process size absorptionProbability shots seed
+    args <- cmdArgs defaultOptions
+    process args

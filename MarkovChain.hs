@@ -1,6 +1,7 @@
 module MarkovChain
 ( runMarkovChain
-, mkRandomTransitionMatrix
+, randomMatrix
+, toTransitionMatrix
 , step
 , stepUntilAbsorption
 , TransitionMatrix
@@ -65,18 +66,7 @@ toTransitionMatrix pAbs m = extended  <-> fromAbsorption
           norm = 1.0 - pAbs
           normalized = foldl' (normalizeRow norm) m [1..rs]
           extended = setSize pAbs rs (cs + 1) normalized
-          fromAbsorption = rowVector $ (V.replicate cs 0.0) `V.snoc` 1.0
-
-
-{- |
-   Produce a random transition matrix
--}
-mkRandomTransitionMatrix :: Int           -- ^ the matrix size
-                         -> Double        -- ^ the absorption probability
-                         -> MC TransitionMatrix
-mkRandomTransitionMatrix size pAbs = do
-    m <- randomMatrix (size-1)
-    return $ toTransitionMatrix pAbs m
+          fromAbsorption = rowVector $ V.replicate cs 0.0 `V.snoc` 1.0
 
 
 -- | Take one step: transition from a state to another
@@ -115,10 +105,9 @@ stepUntilAbsorption = do
     matrix <- ask
     let absState = nrows matrix
     state <- get
-    states <- actWhileM step (/=absState)
-    return states
+    actWhileM step (/=absState)
 
 getState :: MarkovChain SystemState
 getState = get
 
-runMarkovChain action matrix initialState = runStateT (runReaderT action matrix) initialState
+runMarkovChain action matrix = runStateT (runReaderT action matrix)

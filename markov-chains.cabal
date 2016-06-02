@@ -9,13 +9,16 @@ maintainer:          davide.mancusi@cea.fr
 -- copyright:           
 category:            Math
 build-type:          Simple
--- extra-source-files:  
+package-url:         https://github.com/arekfu/markov-chains
 cabal-version:       >=1.10
+source-repository head
+  type:     git
+  location: https://github.com/arekfu/markov-chains.git
 
 executable markov-chains
   main-is:             markov-chains.hs
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.8 && <4.9, random >=1.1 && <1.2, mtl >=2.2 && <2.3, vector >=0.11 && <0.12, matrix >=0.3 && <0.4, data-ordlist >=0.4 && <0.5
+  build-depends:       base >=4.8 && <4.9, random >=1.1 && <1.2, mtl >=2.2 && <2.3, vector >=0.11 && <0.12, matrix >=0.3 && <0.4, data-ordlist >=0.4 && <0.5, cmdargs
   -- hs-source-dirs:      
   default-language:    Haskell2010
