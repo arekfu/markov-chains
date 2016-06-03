@@ -73,7 +73,7 @@ toTransitionMatrix pAbs m = extended  <-> fromAbsorption
 step :: MarkovChain SystemState
 step = do
     matrix <- ask
-    state <- get
+    state <- getState
     let probs = getRow state matrix
     i <- lift $ lift $ sampleV probs
     put i
@@ -104,7 +104,7 @@ stepUntilAbsorption :: MarkovChain [SystemState]
 stepUntilAbsorption = do
     matrix <- ask
     let absState = nrows matrix
-    state <- get
+    state <- getState
     actWhileM step (/=absState)
 
 getState :: MarkovChain SystemState

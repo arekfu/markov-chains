@@ -22,7 +22,7 @@ runMC = runState
 
 uniform :: (Random a, Fractional a) => MC a
 uniform = do
-    gen <- get
+    gen <- getGen
     let (xi, gen') = randomR (0.0, 1.0) gen
     put gen'
     return xi
