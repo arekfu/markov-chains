@@ -1,24 +1,55 @@
 name:                markov-chains
 version:             0.1.0.0
 synopsis:            A simple Haskell sandbox for discrete-state, discrete-time Markov chains
--- description:         
+description:         See README.md
 license:             MIT
 license-file:        LICENSE
 author:              Davide Mancusi
 maintainer:          davide.mancusi@cea.fr
--- copyright:           
+copyright:           Copyright: (c) 2016 Davide Mancusi
 category:            Math
 build-type:          Simple
 package-url:         https://github.com/arekfu/markov-chains
 cabal-version:       >=1.10
 source-repository head
   type:     git
-  location: https://github.com/arekfu/markov-chains.git
+  location: https://github.com/arekfu/markov-chains
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     MC
+                     , Adjoint
+                     , MarkovChain
+                     , TransitionMatrixGenerator
+  build-depends:       base >=4.8 && <4.9
+                     , random >=1.1 && <1.2
+                     , mtl >=2.2 && <2.3
+                     , vector >=0.11 && <0.12
+                     , matrix >=0.3 && <0.4
+                     , data-ordlist >=0.4 && <0.5
+  default-language:    Haskell2010
 
 executable markov-chains
+  hs-source-dirs:      app
   main-is:             markov-chains.hs
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.8 && <4.9, random >=1.1 && <1.2, mtl >=2.2 && <2.3, vector >=0.11 && <0.12, matrix >=0.3 && <0.4, data-ordlist >=0.4 && <0.5, cmdargs
-  -- hs-source-dirs:      
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base >=4.8 && <4.9
+                     , random >=1.1 && <1.2
+                     , mtl >=2.2 && <2.3
+                     , vector >=0.11 && <0.12
+                     , matrix >=0.3 && <0.4
+                     , data-ordlist >=0.4 && <0.5
+                     , cmdargs
+                     , markov-chains
+  default-language:    Haskell2010
+
+test-suite markov-chains-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , markov-chains
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
