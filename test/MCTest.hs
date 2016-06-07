@@ -6,7 +6,7 @@ import qualified Data.Vector as V
 import Control.Monad (liftM)
 import Test.QuickCheck
 import Test.QuickCheck.Arbitrary (vector)
-import Debug.Trace
+import Data.Maybe (isNothing)
 
 import MC
 
@@ -35,11 +35,11 @@ instance (Arbitrary a, Ord a, Num a, Fractional a) => Arbitrary (PositiveVector 
 
 prop_getFirst :: PositiveVector Double -> Bool
 prop_getFirst (PositiveVector v) = let i = sampleV v 0.0
-                                    in trace (show i) i == 1
+                                    in i == Just 1
 
 prop_getLast :: PositiveVector Double -> Bool
 prop_getLast (PositiveVector v) = let i = sampleV v 1.1
-                                   in trace (show i) i == V.length v
+                                   in isNothing i
 
 allTests = [ prop_getFirst
            , prop_getLast

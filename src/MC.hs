@@ -31,17 +31,15 @@ uniform = do
 sampleV :: (Num a, Ord a, Fractional a, Random a)
         => V.Vector a
         -> a
-        -> Int
-sampleV v xi =
+        -> Maybe Int
+sampleV v xi = do
     let v' = V.scanl1' (+) v
-        i  = V.findIndex (>xi) v'
-     in case i of
-          Nothing -> length v
-          Just j  -> j+1
+    i <- V.findIndex (>xi) v'
+    return $ i+1
 
 sampleUniformV :: (Num a, Ord a, Fractional a, Random a)
         => V.Vector a
-        -> MC Int
+        -> MC (Maybe Int)
 sampleUniformV v = do
     xi <- uniform
     return $ sampleV v xi

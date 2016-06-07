@@ -12,10 +12,9 @@ module MarkovChain
 
 import Control.Monad (when)
 import Control.Monad.Reader
-import Control.Monad.State
 import Data.Matrix
 import qualified Data.Vector as V
-import Data.List (foldl')
+import Data.List (unfoldr)
 import System.Random
 
 import MC
@@ -23,7 +22,7 @@ import MC
 type TransitionMatrix = Matrix Double
 type SystemState = Int
 
-type MarkovChain = ReaderT TransitionMatrix (StateT SystemState MC)
+type MarkovChain = ReaderT TransitionMatrix MC
 
 -- | Return a random square matrix of given size, with elements in the [0,1[
 --   range and null diagonal elements
@@ -74,44 +73,23 @@ toTransitionMatrix = scaleMatrix
 
 
 -- | Take one step: transition from a state to another
-step :: MarkovChain SystemState
-step = do
+step :: SystemState -> MarkovChain (Maybe SystemState)
+step state = do
     matrix <- ask
-    state <- getState
     let probs = getRow state matrix
-    i <- lift $ lift $ sampleUniformV probs
-    put i
-    return i
+    lift $ sampleUniformV probs
 
-takeWhileM :: Monad m => (a -> Bool) -> [m a] -> m [a]
-takeWhileM _ [] = return []
-takeWhileM pred (x:xs) = do
-    y <- x
-    let cont = pred y
-    if cont
-    then do
-        rest <- takeWhileM pred xs
-        return (y:rest)
-    else return []
-
-actWhileM :: Monad m => m a -> (a -> Bool) -> m [a]
-actWhileM act pred = do
-    x <- act
-    if pred x
-    then do
-        rest <- actWhileM act pred
-        return (x:rest)
-    else return []
+actWhileM :: Monad m => a -> (a -> m (Maybe a)) -> m [a]
+actWhileM initialState act = do
+    newState <- act initialState
+    case newState of
+      Nothing -> return []
+      Just s  -> do
+        rest <- actWhileM s act
+        return (s:rest)
 
 -- | Take steps until we hit absorption
-stepUntilAbsorption :: MarkovChain [SystemState]
-stepUntilAbsorption = do
-    matrix <- ask
-    let absState = nrows matrix
-    state <- getState
-    actWhileM step (/=absState)
+stepUntilAbsorption :: SystemState -> MarkovChain [SystemState]
+stepUntilAbsorption initialState = actWhileM initialState step
 
-getState :: MarkovChain SystemState
-getState = get
-
-runMarkovChain action matrix = runStateT (runReaderT action matrix)
+runMarkovChain = runReaderT

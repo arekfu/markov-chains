@@ -43,9 +43,8 @@ process (Options shots seed dim pabs coup tmTyp) = do
     print adjoint
 
 simulateNChains :: Int -> SystemState -> TransitionMatrix -> MC [[SystemState]]
-simulateNChains shots initialState matrix = do
-    chains <- replicateM shots $ runMarkovChain stepUntilAbsorption matrix initialState
-    return $ map fst chains
+simulateNChains shots initialState matrix =
+    replicateM shots $ runMarkovChain (stepUntilAbsorption initialState) matrix
 
 --------------
 -- CLI options
@@ -82,7 +81,7 @@ defaultOptions = Options
     , tmType = "random"
       &= explicit &= name "t" &= name "type"
       &= help "algorithm to generate the transition matrix; must be one of \
-              \\"random\", \"block\""
+              \\"random\", \"random-null-diag\", \"block\""
       &= typ "ALGORITHM"
     } &= program "markov-chains"
       &= summary "markov-chains v0.1.0.0"
