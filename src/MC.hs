@@ -4,6 +4,7 @@ module MC
 , runMC
 , uniform
 , sampleV
+, sampleUniformV
 , getGen
 ) where
 
@@ -27,13 +28,20 @@ uniform = do
     put gen'
     return xi
 
-sampleV :: (Num a, Ord a, Fractional a, Random a, Show a)
+sampleV :: (Num a, Ord a, Fractional a, Random a)
+        => V.Vector a
+        -> a
+        -> Int
+sampleV v xi =
+    let v' = V.scanl1' (+) v
+        i = V.findIndex (>xi) v'
+     in case i of
+          Nothing -> length v
+          Just j  -> j+1
+
+sampleUniformV :: (Num a, Ord a, Fractional a, Random a)
         => V.Vector a
         -> MC Int
-sampleV v = do
+sampleUniformV v = do
     xi <- uniform
-    let v' = V.scanl1' (+) v
-    let i = V.findIndex (>xi) v'
-    return $ case i of
-        Nothing -> length v
-        Just j -> j+1
+    return $ sampleV v xi

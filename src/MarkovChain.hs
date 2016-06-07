@@ -79,7 +79,7 @@ step = do
     matrix <- ask
     state <- getState
     let probs = getRow state matrix
-    i <- lift $ lift $ sampleV probs
+    i <- lift $ lift $ sampleUniformV probs
     put i
     return i
 
