@@ -64,19 +64,13 @@ normalizeRow norm m i = mapRow (\ _ x -> x*norm/tot) i m
 
 
 {- |
-   Adjust the elements of the given matrix so that it can be used as a transition matrix
-   (with the understanding that W_{i,j} is the probability for the i -> j transition)
+   Rescale the elements of the given matrix by multiplying by the
+   absorption probability
 -}
-toTransitionMatrix :: Double        -- ^ the absorption probability
-                   -> TransitionMatrix -- ^ the input matrix
+toTransitionMatrix :: Double            -- ^ the absorption probability
+                   -> TransitionMatrix  -- ^ the input matrix
                    -> TransitionMatrix
-toTransitionMatrix pAbs m = extended  <-> fromAbsorption
-    where rs = nrows m
-          cs = ncols m
-          norm = 1.0 - pAbs
-          normalized = foldl' (normalizeRow norm) m [1..rs]
-          extended = setSize pAbs rs (cs + 1) normalized
-          fromAbsorption = rowVector $ V.replicate cs 0.0 `V.snoc` 1.0
+toTransitionMatrix = scaleMatrix
 
 
 -- | Take one step: transition from a state to another
