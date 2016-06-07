@@ -34,7 +34,7 @@ sampleV :: (Num a, Ord a, Fractional a, Random a)
         -> Int
 sampleV v xi =
     let v' = V.scanl1' (+) v
-        i = V.findIndex (>xi) v'
+        i  = V.findIndex (>xi) v'
      in case i of
           Nothing -> length v
           Just j  -> j+1
