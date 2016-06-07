@@ -21,9 +21,10 @@ import TransitionMatrixGenerator
 process :: Options -> IO ()
 process (Options shots seed dim pabs coup tmTyp) = do
     let mg = case tmTyp of
-                 "random" -> RandomMG dim pabs
-                 "block"  -> BlockMG dim pabs coup
-                 s        -> error $ "Unrecognized algorithm: " ++ s
+                 "random"           -> RandomMG dim pabs
+                 "random-null-diag" -> RandomNullDiagMG dim pabs
+                 "block"            -> BlockMG dim pabs coup
+                 s                  -> error $ "Unrecognized algorithm: " ++ s
     let gen = mkStdGen seed
     let matrixAct = makeMatrix mg
     let (m, gen') = runMC matrixAct gen

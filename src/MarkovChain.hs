@@ -1,6 +1,7 @@
 module MarkovChain
 ( runMarkovChain
 , randomMatrix
+, randomMatrixNullDiag
 , toTransitionMatrix
 , step
 , stepUntilAbsorption
@@ -29,6 +30,15 @@ type MarkovChain = ReaderT TransitionMatrix (StateT SystemState MC)
 randomMatrix :: Int                 -- ^ size of the matrix
              -> MC TransitionMatrix -- ^ the matrix, in the MC monad because it's random
 randomMatrix n = do
+    lss <- forM [0..n-1] $ \ k -> randomList n
+    return $ fromLists lss
+
+
+-- | Return a random square matrix of given size, with elements in the [0,1[
+--   range and null diagonal elements
+randomMatrixNullDiag :: Int         -- ^ size of the matrix
+             -> MC TransitionMatrix -- ^ the matrix, in the MC monad because it's random
+randomMatrixNullDiag n = do
     lss <- forM [0..n-1] $ \ k -> do
         ls <- randomList (n-1)
         let (left, right) = splitAt k ls
