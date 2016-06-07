@@ -3,12 +3,14 @@ module MC
 , Seed
 , runMC
 , uniform
+, uniforms
 , sampleV
 , sampleUniformV
 , getGen
 ) where
 
 import System.Random
+import Control.Monad (forM)
 import Control.Monad.State
 import qualified Data.Vector as V
 
@@ -27,6 +29,11 @@ uniform = do
     let (xi, gen') = randomR (0.0, 1.0) gen
     put gen'
     return xi
+
+uniforms :: (Random a, Fractional a)
+         => Int
+         -> MC [a]
+uniforms n = forM [1..n] $ \_ -> uniform
 
 sampleV :: (Num a, Ord a, Fractional a, Random a)
         => V.Vector a

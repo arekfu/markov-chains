@@ -1,5 +1,7 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module MCTest
-( allTests
+( runTests
 ) where
 
 import qualified Data.Vector as V
@@ -41,6 +43,5 @@ prop_getLast :: PositiveVector Double -> Bool
 prop_getLast (PositiveVector v) = let i = sampleV v 1.1
                                    in isNothing i
 
-allTests = [ prop_getFirst
-           , prop_getLast
-           ]
+return []
+runTests = $quickCheckAll

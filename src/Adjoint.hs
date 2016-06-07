@@ -11,10 +11,11 @@ import Control.Monad.ST (runST)
 
 import MC
 import MarkovChain
+import TransitionMatrix
 
 estimateAdjoint :: [[SystemState]] -> Int -> TransitionMatrix -> V.Vector Double
 estimateAdjoint chains shots matrix =
-    let nStates = nrows matrix
+    let nStates = nrows $ toMatrix matrix
         detectorState = nStates - 1
     in runST $ do
         v <- VM.new nStates

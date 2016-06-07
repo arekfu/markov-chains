@@ -15,12 +15,12 @@ import System.Environment (getArgs, getProgName)
 import System.Exit
 import System.IO
 import System.Console.CmdArgs
+import qualified Data.Matrix as DM
 
 import MC
 import MarkovChain
 import Adjoint
-import TransitionMatrixGenerator
-
+import TransitionMatrix
 
 process :: Options -> IO ()
 process (Options shots seed dim pabs coup tmTyp) = do
@@ -41,6 +41,8 @@ process (Options shots seed dim pabs coup tmTyp) = do
     let adjoint = estimateAdjoint steps shots m
     putStrLn "Estimated adjoint:"
     print adjoint
+    putStrLn "Eigensystem:"
+    print $ eig $ toMatrix m
 
 simulateNChains :: Int -> SystemState -> TransitionMatrix -> MC [[SystemState]]
 simulateNChains shots initialState matrix =
