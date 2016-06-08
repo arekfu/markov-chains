@@ -11,11 +11,7 @@ module RealMain
 
 import Control.Monad (replicateM, when)
 import System.Random
-import System.Environment (getArgs, getProgName)
-import System.Exit
-import System.IO
 import System.Console.CmdArgs
-import qualified Data.Matrix as DM
 
 import MC
 import MarkovChain
@@ -23,30 +19,30 @@ import Adjoint
 import TransitionMatrix
 
 process :: Options -> IO ()
-process (Options shots seed dim pabs coup tmTyp) = do
+process (Options shots_ seed_ dim pabs coup tmTyp) = do
     let mg = case tmTyp of
                  "random"           -> RandomMG dim pabs
                  "random-null-diag" -> RandomNullDiagMG dim pabs
                  "block"            -> BlockMG dim pabs coup
                  s                  -> error $ "Unrecognized algorithm: " ++ s
-    let gen = mkStdGen seed
+    let gen = mkStdGen seed_
     let matrixAct = makeMatrix mg
     let (m, gen') = runMC matrixAct gen
     putStrLn "Generated transition matrix:"
     print m
-    let (steps, gen'') = runMC (simulateNChains shots 1 m) gen'
-    when (shots<100) $ do
+    let (steps, _) = runMC (simulateNChains shots_ 1 m) gen'
+    when (shots_<100) $ do
         putStrLn "Generated Markov chains:"
         print steps
-    let adjoint = estimateAdjoint steps shots m
+    let adjoint = estimateAdjoint steps shots_ m
     putStrLn "Estimated adjoint:"
     print adjoint
     putStrLn "Eigensystem:"
     print $ eig $ toMatrix m
 
 simulateNChains :: Int -> SystemState -> TransitionMatrix -> MC [[SystemState]]
-simulateNChains shots initialState matrix =
-    replicateM shots $ runMarkovChain (stepUntilAbsorption initialState) matrix
+simulateNChains shots_ initialState matrix =
+    replicateM shots_ $ runMarkovChain (stepUntilAbsorption initialState) matrix
 
 --------------
 -- CLI options
@@ -59,6 +55,7 @@ data Options = Options { shots :: Int       -- ^ number of shots
                        , tmType :: String                   -- ^ type of transition matrix
                        } deriving (Show, Data, Typeable)
 
+defaultOptions :: Options
 defaultOptions = Options
     { shots = 10
       &= name "n"
@@ -89,6 +86,7 @@ defaultOptions = Options
       &= summary "markov-chains v0.1.0.0"
       &= helpArg [explicit, name "h", name "help"]
 
+realMain :: IO ()
 realMain = do
-    args <- cmdArgs defaultOptions
-    process args
+    args_ <- cmdArgs defaultOptions
+    process args_

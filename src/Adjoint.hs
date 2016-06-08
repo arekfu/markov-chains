@@ -9,7 +9,6 @@ import qualified Data.Vector.Mutable as VM
 import Control.Monad (forM_, when)
 import Control.Monad.ST (runST)
 
-import MC
 import MarkovChain
 import TransitionMatrix
 

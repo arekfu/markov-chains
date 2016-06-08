@@ -83,7 +83,7 @@ mkBlockTransitionMatrix size pAbs coupling = do
 randomMatrix :: Int                 -- ^ size of the matrix
              -> MC (Matrix Double)  -- ^ the matrix, in the MC monad because it's random
 randomMatrix n = do
-    lss <- forM [0..n-1] $ \ k -> randomList n
+    lss <- forM [0..n-1] $ \ _ -> randomList n
     return $ fromLists lss
 
 
@@ -111,9 +111,9 @@ randomList n = do
     return (x:xs)
 
 
-normalizeRow :: Double -> Int -> Matrix Double -> Matrix Double
-normalizeRow norm i m = mapRow (\ _ x -> x*norm/tot) i m
-    where tot = sum $ getRow i m
+--normalizeRow :: Double -> Int -> Matrix Double -> Matrix Double
+--normalizeRow norm i m = mapRow (\ _ x -> x*norm/tot) i m
+--    where tot = sum $ getRow i m
 
 normalizeCol :: Double -> Int -> Matrix Double -> Matrix Double
 normalizeCol norm i m = mapCol (\ _ x -> x*norm/tot) i m

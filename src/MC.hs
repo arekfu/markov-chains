@@ -10,7 +10,6 @@ module MC
 ) where
 
 import System.Random
-import Control.Monad (forM)
 import Control.Monad.State
 import qualified Data.Vector as V
 
@@ -21,6 +20,7 @@ type MC = State StdGen
 getGen :: MC StdGen
 getGen = get
 
+runMC :: State s a -> s -> (a, s)
 runMC = runState
 
 uniform :: (Random a, Fractional a) => MC a
@@ -33,7 +33,7 @@ uniform = do
 uniforms :: (Random a, Fractional a)
          => Int
          -> MC [a]
-uniforms n = forM [1..n] $ \_ -> uniform
+uniforms n = forM [1..n] $ const uniform
 
 sampleV :: (Num a, Ord a, Fractional a, Random a)
         => V.Vector a

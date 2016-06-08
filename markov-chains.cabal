@@ -47,6 +47,8 @@ test-suite markov-chains-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
+  other-modules:       MCTest
+                     , TransitionMatrixTest
   build-depends:       base
                      , vector
                      , matrix
