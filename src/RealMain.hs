@@ -29,7 +29,7 @@ process (Options shots_ seed_ dim pabs coup tmTyp) = do
     let matrixAct = makeMatrix mg
     let (m, gen') = runMC matrixAct gen
     putStrLn "Generated transition matrix:"
-    print m
+    print $ toMatrix m
     let (steps, _) = runMC (simulateNChains shots_ 1 m) gen'
     when (shots_<100) $ do
         putStrLn "Generated Markov chains:"
