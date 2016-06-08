@@ -36,7 +36,7 @@ closeTo :: (Ord a, Num a) => a -> a -> a -> Bool
 closeTo tol x y = abs (x - y) < tol
 
 prop_idempotenceToNLMatrix :: Matrix Double -> Bool
-prop_idempotenceToNLMatrix m = m == (fromNLMatrix $ toNLMatrix m)
+prop_idempotenceToNLMatrix m = m == fromNLMatrix (toNLMatrix m)
 
 prop_normalization :: Positive Double -> Matrix Double -> Bool
 prop_normalization (Positive norm) m = let m' = toTransitionMatrix (1.0 - norm) m
