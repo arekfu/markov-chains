@@ -9,13 +9,13 @@ module RealMain
 ( realMain
 ) where
 
-import Control.Monad (replicateM, when)
+import Control.Monad (replicateM, when, forM_)
 import System.Random
 import System.Console.CmdArgs
 
 import MC
 import MarkovChain
-import Adjoint
+import Scores
 import TransitionMatrix
 
 process :: Options -> IO ()
@@ -34,11 +34,8 @@ process (Options shots_ seed_ dim pabs coup tmTyp) = do
     when (shots_<100) $ do
         putStrLn "Generated Markov chains:"
         print steps
-    let adjoint = estimateAdjoint steps shots_ m
-    putStrLn "Estimated adjoint:"
-    print adjoint
-    putStrLn "Eigensystem:"
-    print $ eig $ toMatrix m
+    let scores = [scoreAdjoint, scoreEigensystem, scoreFlux, scoreChainLength]
+    forM_ scores $ \score -> wrapScore score steps shots_ m
 
 simulateNChains :: Int -> SystemState -> TransitionMatrix -> MC [[SystemState]]
 simulateNChains shots_ initialState matrix =
