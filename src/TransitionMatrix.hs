@@ -139,8 +139,8 @@ toNLMatrix = NL.fromLists . toLists
 fromNLMatrix :: NL.Element a => NL.Matrix a -> Matrix a
 fromNLMatrix = fromLists . NL.toLists
 
-eig :: NL.Element a => Matrix a -> (V.Vector (NL.Complex Double), Matrix (NL.Complex Double))
+eig :: (NL.Element a, NL.Field a) => Matrix a -> (V.Vector (NL.Complex Double), Matrix (NL.Complex Double))
 eig m = let (vnl, mnl) = NL.eig $ toNLMatrix m
-            v = V.fromList $ NL.toList vnl
-            m = fromNLMatrix mnl
-         in (v, m)
+            v' = V.fromList $ NL.toList vnl
+            m' = fromNLMatrix mnl
+         in (v', m')
