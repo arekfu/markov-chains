@@ -72,9 +72,9 @@ mkBlockTransitionMatrix size pAbs coupling = do
     m1 <- randomMatrix blockSize1
     m4 <- randomMatrix blockSize2
     let fromCoupling = blockSize1 `div` 2
-    let toCoupling = blockSize1 + (blockSize2 `div` 2)
-    let m2 = matrix blockSize1 blockSize2 (\(i,j) -> if i==fromCoupling && j==toCoupling then coupling else 0.0)
-    let m3 = zero blockSize2 blockSize1
+    let toCoupling = blockSize2 `div` 2
+    let m2 = zero blockSize2 blockSize1
+    let m3 = matrix blockSize1 blockSize2 (\(i,j) -> if j==fromCoupling && i==toCoupling then coupling else 0.0)
     let m = joinBlocks (m1, m2, m3, m4)
     return $ toTransitionMatrix pAbs m
 
