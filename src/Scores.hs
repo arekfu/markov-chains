@@ -47,6 +47,8 @@ scoreEigensystem _ _ m = do
     let m' = toMatrix m
     let mMinus1 = m' - identity (nrows m')
     print $ eig mMinus1
+    let pAbs = estimatePAbs m
+    putStrLn ("Expected dominant eigenvalue: " ++ show pAbs)
 
 scoreFlux :: Score
 scoreFlux chains shots matrix = do
