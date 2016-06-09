@@ -63,8 +63,10 @@ scoreFlux chains shots matrix = do
     print vec
 
 scoreChainLength :: Score
-scoreChainLength chains shots _ = do
+scoreChainLength chains shots mat = do
     let lengths = map length chains
     let averageLength = fromIntegral (sum lengths) / fromIntegral shots :: Double
-    putStrLn "Average length:"
-    print averageLength
+    let pAbs = estimatePAbs mat
+    let expectedLength = (1.0-pAbs)/pAbs
+    putStrLn "Average length (expected):"
+    putStrLn (show averageLength ++ " (" ++ show expectedLength ++ ")")
