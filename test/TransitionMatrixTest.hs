@@ -51,6 +51,14 @@ prop_sameNormalization (TestTransitionMatrix m) =
         norms = map sum cols
      in all (closeTo 1.0E-4 $ head norms) norms
 
+prop_estimatePAbs :: Positive Double -> TestMatrix Double -> Bool
+prop_estimatePAbs (Positive norm) (TestMatrix m) =
+    let pAbs = 1.0 - norm
+        m'   = toTransitionMatrix pAbs m
+        est  = estimatePAbs m'
+     in closeTo 1.0E-4 est pAbs
+
+
 return []
 runTests :: IO Bool
 runTests  = $quickCheckAll

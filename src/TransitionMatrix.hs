@@ -9,8 +9,8 @@ module TransitionMatrix
 , toNLMatrix
 , fromNLMatrix
 , eig
-, toMatrix
-, TransitionMatrix
+, estimatePAbs
+, TransitionMatrix (..)
 , TransitionMatrixGenerator (..)
 ) where
 
@@ -144,3 +144,9 @@ eig m = let (vnl, mnl) = NL.eig $ toNLMatrix m
             v' = V.fromList $ NL.toList vnl
             m' = fromNLMatrix mnl
          in (v', m')
+
+avg :: (Num a, Fractional a, Foldable t) => t a -> a
+avg v = sum v / fromIntegral (length v)
+
+estimatePAbs :: TransitionMatrix -> Double
+estimatePAbs (TransitionMatrix m) = 1.0 - fromIntegral (nrows m) * avg (toList m)
