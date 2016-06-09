@@ -5,48 +5,52 @@ module TransitionMatrixTest
 ) where
 
 import Control.Monad (forM)
-import Data.List (all)
-import Data.Matrix (fromList, transpose, toLists, Matrix, nrows, ncols, zero, getCol)
+import Data.Matrix (fromList, transpose, toLists, Matrix, ncols, getCol)
 import Test.QuickCheck
-import Test.QuickCheck.Arbitrary (vector)
-import Test.QuickCheck.Modifiers (Positive)
+import Test.QuickCheck.Arbitrary ()
 
 import TransitionMatrix
 
-isValid :: (Eq a, Num a) => Matrix a -> Bool
-isValid m = let nc = ncols m
-                validVect = any (/=0)
-             in all validVect $ forM [1..nc] $ \j -> getCol j m
-
-instance (Arbitrary a, Eq a, Num a) => Arbitrary (Matrix a) where
+newtype TestMatrix a = TestMatrix { getMatrix :: Matrix a } deriving (Eq, Show)
+instance (Arbitrary a, Eq a, Num a) => Arbitrary (TestMatrix a) where
   arbitrary = let helper = do
                     n <- choose (2, 5)
                     v <- vector (n*n)
-                    return $ fromList n n $ map abs v
+                    return $ TestMatrix $ fromList n n $ map abs v
                in helper `suchThat` isValid
 
-instance Arbitrary TransitionMatrix where
+newtype TestTransitionMatrix = TestTransitionMatrix TransitionMatrix deriving (Show, Eq)
+instance Arbitrary TestTransitionMatrix where
   arbitrary = do
     m <- arbitrary `suchThat` isValid
     norm <- choose (0.0, 1.0)
-    return $ toTransitionMatrix norm m
+    return $ TestTransitionMatrix $ toTransitionMatrix norm $ getMatrix m
 
+
+isValid :: (Eq a, Num a) => TestMatrix a -> Bool
+isValid (TestMatrix m) = let nc = ncols m
+                             validVect = any (/=0)
+                          in all validVect $ forM [1..nc] $ \j -> getCol j m
 
 closeTo :: (Ord a, Num a) => a -> a -> a -> Bool
 closeTo tol x y = abs (x - y) < tol
 
-prop_idempotenceToNLMatrix :: Matrix Double -> Bool
-prop_idempotenceToNLMatrix m = m == fromNLMatrix (toNLMatrix m)
+prop_idempotenceToNLMatrix :: TestMatrix Double -> Bool
+prop_idempotenceToNLMatrix (TestMatrix m) = m == fromNLMatrix (toNLMatrix m)
 
-prop_normalization :: Positive Double -> Matrix Double -> Bool
-prop_normalization (Positive norm) m = let m' = toTransitionMatrix (1.0 - norm) m
-                                           cols = toLists $ transpose $ toMatrix m'
-                                           norms = map sum cols
-                                        in all (closeTo 1.0E-4 norm) norms
+prop_normalization :: Positive Double -> TestMatrix Double -> Bool
+prop_normalization (Positive norm) (TestMatrix m) =
+    let m' = toTransitionMatrix (1.0 - norm) m
+        cols = toLists $ transpose $ toMatrix m'
+        norms = map sum cols
+     in all (closeTo 1.0E-4 norm) norms
 
-prop_sameNormalization :: TransitionMatrix -> Bool
-prop_sameNormalization m = let cols = toLists $ transpose $ toMatrix m
-                               norms = map sum cols
-                            in all (closeTo 1.0E-4 $ head norms) norms
+prop_sameNormalization :: TestTransitionMatrix -> Bool
+prop_sameNormalization (TestTransitionMatrix m) =
+    let cols = toLists $ transpose $ toMatrix m
+        norms = map sum cols
+     in all (closeTo 1.0E-4 $ head norms) norms
+
 return []
+runTests :: IO Bool
 runTests  = $quickCheckAll

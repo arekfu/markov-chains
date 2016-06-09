@@ -1,9 +1,8 @@
-import Test.QuickCheck
-import Control.Monad (forM_)
-
 import MCTest
 import TransitionMatrixTest
 
+main :: IO ()
 main = do
-    MCTest.runTests
-    TransitionMatrixTest.runTests
+    _ <- MCTest.runTests
+    _ <- TransitionMatrixTest.runTests
+    return ()
